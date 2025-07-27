@@ -51,20 +51,13 @@ if st.button("리포트 생성하기"):
     # ===========================================
     result_text = response.json()["choices"][0]["message"]["content"]
 
-    # 불필요한 영어/특수문자 제거 후 한국어만 남김
-    cleaned_text = re.sub(r'[^가-힣0-9\s\.\,\-\%\(\)]', '', result_text).strip()
+
 
     # ===========================================
     # 6. 출력
     # ===========================================
     st.markdown(f"### {random_date}")
-    st.write(cleaned_text)
+    st.write(result_text)
 
 result = response.json()
-
-if "choices" in result:
-    result_text = result["choices"][0]["message"]["content"]
-else:
-    st.error(f"API 호출 실패: {result}")
-    st.stop()
 
