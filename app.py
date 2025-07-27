@@ -40,7 +40,7 @@ if st.button("리포트 생성하기"):
     api_key = st.secrets["OPENROUTER_API_KEY"]
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     data = {
-        "model": ""meta-llama/llama-3-8b-instruct"",  # 한국어 품질 좋은 모델
+        "model": "meta-llama/llama-3-8b-instruct"",  # 한국어 품질 좋은 모델
         "messages": [{"role": "user", "content": prompt}]
     }
 
