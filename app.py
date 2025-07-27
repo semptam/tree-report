@@ -59,3 +59,12 @@ if st.button("리포트 생성하기"):
     # ===========================================
     st.markdown(f"### {random_date}")
     st.write(cleaned_text)
+
+result = response.json()
+
+if "choices" in result:
+    result_text = result["choices"][0]["message"]["content"]
+else:
+    st.error(f"API 호출 실패: {result}")
+    st.stop()
+
