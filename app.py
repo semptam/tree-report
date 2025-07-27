@@ -4,44 +4,58 @@ import random
 import requests
 import re
 
-# 데이터 불러오기
+# ===========================================
+# 1. 데이터 불러오기
+# ===========================================
 df = pd.read_csv("sample_tree_sensor_data.csv")
 df = df.dropna()
 
+# ===========================================
+# 2. 앱 UI
+# ===========================================
 st.title("오늘의 나무 리포트 🌳")
 
 if st.button("리포트 생성하기"):
-    # 랜덤 행 선택
+    # 랜덤 데이터 선택
     random_row = df.sample(n=1).iloc[0]
     random_date = random_row['timestamp']
 
-    # 프롬프트 작성
+    # ===========================================
+    # 3. 프롬프트 (한국어 강화)
+    # ===========================================
     prompt = f"""
-    너는 나무다. 아래의 데이터를 바탕으로 150자의 시적인 저널을 한국어로 작성해라.
-    저널 맨 앞에 날짜({random_date})를 그대로 적고, 불필요한 머리말 없이 바로 글을 시작해라.
-    인간이 나무의 감각을 체험할 수 있도록 생생하게 표현하되,
-    환경 문제에 대한 경각심을 불러일으키는 어조로 작성해라.
+    너는 나무다. 아래 데이터를 활용해 150자 이내의 시적인 저널을 **한국어로만** 작성하라.
+    영어, 외래어, 특수문자를 사용하지 말고 자연스러운 한국어 문장으로 표현해라.
+    저널은 날짜({random_date})로 시작하고, 나무의 감각과 환경에 대한 경각심을 생생히 전해라.
 
-    - Temperature: {random_row['temperature_C']} °C
-    - Humidity: {random_row['humidity_%']} %
-    - Soil moisture: {random_row['soil_moisture_%']} %
-    - Light intensity: {random_row['light_lux']} lux
+    - 온도: {random_row['temperature_C']} °C
+    - 습도: {random_row['humidity_%']} %
+    - 토양 수분: {random_row['soil_moisture_%']} %
+    - 빛 세기: {random_row['light_lux']} lux
     """
 
-    # OpenRouter API 요청
+    # ===========================================
+    # 4. OpenRouter API 호출
+    # ===========================================
     api_key = st.secrets["OPENROUTER_API_KEY"]
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
     data = {
-        "model": "meta-llama/llama-3-8b-instruct",
+        "model": "google/gemma-7b-it",  # 한국어 품질 좋은 모델
         "messages": [{"role": "user", "content": prompt}]
     }
 
     response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=data)
+
+    # ===========================================
+    # 5. 결과 후처리 (영어/특수문자 제거)
+    # ===========================================
     result_text = response.json()["choices"][0]["message"]["content"]
 
-    # 불필요한 기호 제거
-    cleaned_text = re.sub(r"^[^가-힣0-9]+", "", result_text).strip()
+    # 불필요한 영어/특수문자 제거 후 한국어만 남김
+    cleaned_text = re.sub(r'[^가-힣0-9\s\.\,\-\%\(\)]', '', result_text).strip()
 
-    # 출력
+    # ===========================================
+    # 6. 출력
+    # ===========================================
     st.markdown(f"### {random_date}")
     st.write(cleaned_text)
